@@ -7,5 +7,5 @@ router = DefaultRouter()
 router.register('api/orders', OrderViewSet, basename='orders')
 urlpatterns = router.urls
 urlpatterns += [
-    path('update-data/', update_data)
+    path('api/update-data/', update_data)
 ]

@@ -2,14 +2,40 @@ version: '3.7'
 services:
   web:
     container_name: web
+    restart: always
     build: ./
-    command: "gunicorn --bind 0.0.0.0:${DJANGO_PORT} SyncGoogleSheets.wsgi"
+    command: "gunicorn SyncGoogleSheets.wsgi:application --bind 0.0.0.0:${DJANGO_PORT}"
     env_file:
       - ./.env
     expose:
       - ${DJANGO_PORT}
     depends_on:
       - db
+      - redis
+
+  celery_worker:
+    container_name: celery_worker
+    build: ./
+    command: celery -A synchronization worker -l info
+    depends_on:
+      - web
+
+  celery_beat:
+    container_name: celery_beat
+    build: ./
+    command: celery -A synchronization beat -l info
+    depends_on:
+      - web
+
+  redis:
+    container_name: redis
+    image: redis:6.2.6
+    expose:
+      - ${REDIS_PORT}
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    volumes:
+      - redis:/data
 
   db:
     container_name: postgres
@@ -23,6 +49,25 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
 
+  nginx:
+    container_name: nginx
+    image: nginx:latest
+    ports:
+      - ${DJANGO_PORT}:${NGINX_OUTPUT_PORT}
+    environment:
+      - DJANGO_PORT=${DJANGO_PORT}
+      - NGINX_OUTPUT_PORT=${NGINX_OUTPUT_PORT}
+    volumes:
+      - staticfiles:/home/SyncGoogleSheets/staticfiles/
+      - ./configs/nginx.conf.template:/etc/nginx/templates/default.conf.template
+    depends_on:
+      - web
+
 volumes:
   db:
-
+  static_volume:
+  redis:
+  type:
+  source:
+  staticfiles:
+    name: staticfiles

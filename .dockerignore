@@ -1,11 +1,10 @@
 .github
 .git
 venv
+env
 .dockeringore
 .env.example
 .flake8
 .gitignore
-docker-compose.yml
-Dockerfile
 celerybeat.pid
 celerybeat-schedule.db
