@@ -6,3 +6,4 @@
   3. Указать ```SECRET_KEY``` в ```.env``` 
   4. Запустить docker: ```docker-compose up --build```
   5. При повторном запуске закомментировать ```python manage.py migrate``` и ```python manage.py collectstatic``` в файле ```deploy.sh```
+  6. Приложение работает на ```127.0.0.1```
