@@ -16,18 +16,16 @@ class App extends React.Component {
     }
 
     updateOrders() {
-        this.setState({loading:true})
         axios.post(this.state.updateDataUrl).then()
         this.getOrders()
-        this.setState({loading:false})
     }
 
     getOrders() {
-        this.setState({orders: []})
+        this.setState({orders: [], loading:true})
         axios.get(this.state.getOrdersUrl)
             .then(response => {
                 const orders = response.data;
-                this.setState({orders})
+                this.setState({orders:orders, loading:false})
             });
     }
 
