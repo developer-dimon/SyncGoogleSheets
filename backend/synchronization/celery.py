@@ -1,4 +1,5 @@
 import os
+
 from celery import Celery
 from celery.schedules import crontab
 from django.conf import settings
@@ -10,7 +11,7 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
-    'send-email': {
+    'update_orders': {
         'task': 'synchronization.tasks.periodic_update_orders',
         'schedule': crontab(minute=settings.CELERY_UPDATE_ORDERS_SCHEDULE)
     }

@@ -1,6 +1,6 @@
 FROM python:3.9.13
 
-WORKDIR /home/SyncGoogleSheets/
+WORKDIR /home/backend/
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
@@ -11,4 +11,3 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-RUN python manage.py collectstatic

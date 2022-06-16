@@ -43,7 +43,7 @@ def create_list_orders() -> list[Order]:
             Order(
                 order_number=int(order_number),
                 price_dollars=float(price_dollars),
-                price_rubles=float(price_dollars) * dollar_rate,
+                price_rubles=round(float(price_dollars) * dollar_rate, 2),
                 delivery_date=datetime.strptime(delivery_date, '%d.%m.%Y')
             )
         )

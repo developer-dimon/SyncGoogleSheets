@@ -7,7 +7,6 @@ from synchronization.api.serializers import OrderSerializer
 from synchronization.models import Order
 from synchronization.services import update_orders_db
 
-
 @api_view(['POST'])
 def update_data(request):
     update_orders_db()

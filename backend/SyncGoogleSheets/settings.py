@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'corsheaders',
     'rest_framework',
 
     'synchronization'
@@ -34,6 +35,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'SyncGoogleSheets.urls'
@@ -99,9 +101,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
 REDIS_PORT = os.environ.get('REDIS_PORT', '6379')
 REDIS_DB = os.environ.get('REDIS_DB', '0')
+
 CELERY_BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/' + REDIS_DB
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
-CELERY_UPDATE_ORDERS_SCHEDULE = '0, 1'
+CELERY_UPDATE_ORDERS_SCHEDULE = 5
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -127,3 +130,11 @@ GOOGLE_CREDENTIALS_FILE = os.environ.get('GOOGLE_CREDENTIALS_FILE')
 SCOPES = os.environ.get('SCOPES').split(' ')
 SAMPLE_SPREADSHEET_ID = os.environ.get('SAMPLE_SPREADSHEET_ID')
 SAMPLE_RANGE_NAME = os.environ.get('SAMPLE_RANGE_NAME')
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    )
+}

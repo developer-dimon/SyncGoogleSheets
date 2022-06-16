@@ -1,0 +1,33 @@
+upstream backend {
+    server web:${DJANGO_PORT};
+}
+server {
+    listen ${NGINX_OUTPUT_PORT};
+
+    location / {
+        root /home/frontend;
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /admin {
+        proxy_pass http://backend;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $host;
+        proxy_redirect off;
+    }
+
+    location /api/ {
+        proxy_pass http://backend;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $host;
+        proxy_redirect off;
+    }
+    location /static/rest_framework {
+        alias /home/backend/staticfiles/rest_framework;
+    }
+
+    location /static/admin{
+        alias /home/backend/staticfiles/admin;
+    }
+
+}

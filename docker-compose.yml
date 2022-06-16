@@ -1,31 +1,16 @@
 version: '3.7'
 services:
-  web:
-    container_name: web
-    restart: always
-    build: ./
-    command: "gunicorn SyncGoogleSheets.wsgi:application --bind 0.0.0.0:${DJANGO_PORT}"
-    env_file:
-      - ./.env
-    expose:
-      - ${DJANGO_PORT}
-    depends_on:
-      - db
-      - redis
-
-  celery_worker:
-    container_name: celery_worker
-    build: ./
-    command: celery -A synchronization worker -l info
-    depends_on:
-      - web
-
-  celery_beat:
-    container_name: celery_beat
-    build: ./
-    command: celery -A synchronization beat -l info
-    depends_on:
-      - web
+  db:
+    container_name: postgres
+    image: postgres
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    volumes:
+      - db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
 
   redis:
     container_name: redis
@@ -37,37 +22,77 @@ services:
     volumes:
       - redis:/data
 
-  db:
-    container_name: postgres
-    image: postgres
-    expose:
-      - ${POSTGRES_PORT}
+  web:
+    container_name: web
+    restart: always
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: "sh ./deploy.sh"
     volumes:
-      - db:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+      - ./backend:/home/backend
+      - staticfiles:/home/backend/staticfiles/
+    env_file:
+      - .env
+    expose:
+      - ${DJANGO_PORT}
+    depends_on:
+      - db
+      - redis
+
+  celery_worker:
+    container_name: celery_worker
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/home/backend
+    command: "celery -A synchronization worker -l info"
+    depends_on:
+      - web
+
+  celery_beat:
+    container_name: celery_beat
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/home/backend
+    command: "celery -A synchronization beat -l info"
+    depends_on:
+      - web
+
+  frontend:
+    container_name: frontend
+    build: ./frontend
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - frontend_build:/home/SyncGoogleSheets/frontend/build/
 
   nginx:
     container_name: nginx
     image: nginx:latest
     ports:
-      - ${DJANGO_PORT}:${NGINX_OUTPUT_PORT}
+      - ${NGINX_OUTPUT_PORT}:${NGINX_OUTPUT_PORT}
     environment:
       - DJANGO_PORT=${DJANGO_PORT}
       - NGINX_OUTPUT_PORT=${NGINX_OUTPUT_PORT}
     volumes:
-      - staticfiles:/home/SyncGoogleSheets/staticfiles/
-      - ./configs/nginx.conf.template:/etc/nginx/templates/default.conf.template
+      - staticfiles:/home/backend/staticfiles/
+      - frontend_build:/home/frontend
+      - ./backend/configs/nginx.conf.template:/etc/nginx/templates/default.conf.template
     depends_on:
+      - frontend
       - web
 
 volumes:
   db:
-  static_volume:
   redis:
-  type:
-  source:
   staticfiles:
-    name: staticfiles
+  frontend_build:
